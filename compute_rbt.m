@@ -10,7 +10,7 @@
 %Plist_world: a 2 x n matrix of points describing
 %the world-frame coordinates of the points in Plist_box
 function Plist_world = compute_rbt(x,y,theta,Plist_box)
-    translation = [cos(theta), -sin(theta); sin(theta), cos(theta)];
-    rotation = [x;y];
-    Plist_world = translation*Plist_box + rotation;
+    rotation = [cos(theta), -sin(theta); sin(theta), cos(theta)];
+    translation = [x;y];
+    Plist_world = rotation*Plist_box + translation;
 end

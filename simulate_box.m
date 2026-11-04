@@ -1,4 +1,4 @@
-function simulate_box()
+function [tlist, Vlist, box_params] = simulate_box()
     %define system parameters
     LW = 10; LH = 1; LG = 3;
     k = 2; l0 = 1.5*LG;
@@ -17,14 +17,14 @@ function simulate_box()
     Pbl2_world = Pbl_box + [LG;-LG];
     Pbr1_world = Pbr_box + [0;-l0];
     Pbr2_world = Pbr_box + [l0;0];
-    Ptl1_world = Pbl_box + [-LG;LG];
-    Ptl2_world = Pbl_box + [-LG;0];
-    Ptr1_world = Pbr_box + [LG;LG];
-    Ptr2_world = Pbr_box + [0;LG];
+    Ptl1_world = Ptl_box + [-LG;LG];
+    Ptl2_world = Ptl_box + [-LG;0];
+    Ptr1_world = Ptr_box + [LG;LG];
+    Ptr2_world = Ptr_box + [0;LG];
     
     P_world = [Pbl1_world,Pbl2_world, ...
                Pbr1_world,Pbr2_world, ...
-               Ptl1_world,Ptl2_world ...
+               Ptl1_world,Ptl2_world, ...
                Ptr1_world, Ptr2_world];
 
     boundary_pts = [Pbl_box,Pbr_box,Ptr_box,Ptl_box,Pbl_box];
@@ -34,7 +34,7 @@ function simulate_box()
     box_params.I = (1/12)*(LH^2+LW^2);
     box_params.g = 9.8;
     box_params.k_list = [.5*k,.5*k,2*k,3*k,3*k,.5*k,2*k,3*k];
-    box_params.l0_list = [.5*LG,.5*LG,2*LG,5*LG,5*LG,.5*LG,2*LG,5*k];
+    box_params.l0_list = [.5*LG,.5*LG,2*LG,5*LG,5*LG,.5*LG,2*LG,5*LG];
     box_params.P_world = P_world;
     box_params.P_box = P_box;
     box_params.boundary_pts = boundary_pts;

@@ -36,8 +36,8 @@ function[ax,ay,atheta]=compute_accel(x,y,theta,box_params)
     
     for i = 1:length(k_list)
         % compute P_lists
-        PA = compute_rbt(x,y,theta,P_box(:,i));
-        PB = compute_rbt(x,y,theta,P_world(:,i));
+        PA = P_world(:, i);
+        PB = compute_rbt(x,y,theta,P_box(:,i));
 
         % compute spring force
         F = compute_spring_force(k_list(i),l0_list(i),PA,PB);
@@ -50,15 +50,15 @@ function[ax,ay,atheta]=compute_accel(x,y,theta,box_params)
         % ax(i) = accels(1);
         % ay(i) = accels(2);
 
-        rA = PA-[x;y];
-        rx = rA(1);
-        ry = rA(2);
+        r = PB-[x;y];
+        rx = r(1);
+        ry = r(2);
         torque = rx*Fy-ry*Fx;
         total_torque = total_torque+torque;
     end
 
-    ax = (1/m)*total_F(1);
-    ay = -g+(1/m)*total_F(2);
+    ax = total_F(1)/m;
+    ay = -g+total_F(2)/m;
     atheta = total_torque/I;
 
 end
