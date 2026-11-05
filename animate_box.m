@@ -1,9 +1,30 @@
 function animate_box(tlist, Vlist, box_params)
+    mypath1 = 'C:\Users\mepstein\OneDrive - Olin College of Engineering\Desktop\Applied Math\mth3199_assignment5\.git';
+    fname='box_video.mp4';
+    input_fname = [mypath1,fname];
+    
+    %create a videowriter, which will write frames to the animation file
+    writerObj = VideoWriter(input_fname);
+    
+    %must call open before writing any frames
+    open(writerObj);
+
+    %initialize the current figure and save as object
+    fig1 = figure(1);
+    xlabel('x-axis', 'Interpreter', 'latex','FontSize',15);
+    ylabel('y-axis', 'Interpreter','latex','FontSize',15)
+    title('Vibrating Box Animation (Fully Nonlinear)', 'Interpreter', 'latex','FontSize',20)
+
+    %this is the critical line that forces the video to be high quality
+    %adjust the numbers to adjust the position/size of the plotting window
+    set(fig1,'units','pixels','position',[100 100 1440 1440]);
+    set(fig1,'resize','off');
+
     n = length(box_params.k_list);
-    figure;
     hold on;
     axis equal;
     axis([-15, 15, -15, 15]);
+
     %plot for each spring
     for i = 1:n
         spring_plot_structs(i) = initialize_spring_plot(5,.5);
@@ -26,7 +47,21 @@ function animate_box(tlist, Vlist, box_params)
             PB = compute_rbt(x,y,theta,box_params.P_box(:,i));
             update_spring_plot(spring_plot_structs(i),PA,PB);
         end
+
+        %write the frame to the video
+        pause(0.01);
+        axis equal; 
+        axis square
+        axis([-15, 15, -15, 15])
+
+        hold on;
+        drawnow;
+
+        %capture a frame (what is currently plotted)
+        current_frame = getframe(gcf);
+        writeVideo(writerObj,current_frame)
         drawnow;
     end
+    close(writerObj)
 end
 
