@@ -95,7 +95,8 @@ function modal_plots()
     epsilon = 0.02;
     n_periods = 4;
     
-    
+    xlims = [0 13; 0 2.5; 0 1.7]; 
+
     for i = 1:3
         Umode   = Umodes(:,i);
         omega_n = omega(i);
@@ -109,19 +110,28 @@ function modal_plots()
         figure();
         subplot(3,1,1); hold on; 
         plot(t, V(:,1), 'b-', t, x_modal, 'r--', 'LineWidth', 1.5);
-        ylabel('$x$ (m)', 'Interpreter', 'Latex');
-        legend('Nonlinear', 'Analytical', 'Interpreter', 'Latex');
+        ylabel('$x$ (m)', 'Interpreter', 'latex', 'FontSize', 18);
+        %legend('Nonlinear', 'Analytical', 'Interpreter', 'latex', 'FontSize', 16, 'Location', 'northoutside');
         
         subplot(3,1,2);
         plot(t, V(:,2), 'b-', t, y_modal, 'r--', 'LineWidth', 1.5);
-        ylabel('$y$ (m)', 'Interpreter', 'Latex');
+        ylabel('$y$ (m)', 'Interpreter', 'latex', 'FontSize', 18);
         
         subplot(3,1,3); 
         plot(t, V(:,3), 'b-', t, theta_modal, 'r--', 'LineWidth', 1.5);
-        ylabel('$\theta$ (rad)', 'Interpreter', 'Latex');
+        ylabel('$\theta$ (rad)', 'Interpreter', 'latex', 'FontSize', 18);
         
-        xlabel('Time (s)', 'Interpreter', 'latex');
-        sgtitle(sprintf('Mode %d: $\\omega_n$ = %.3f rad/s', i, omega_n), 'Interpreter', 'latex');
+        xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize',18);
+        sgtitle(sprintf('Mode %d: Nonlinear Simulation vs. Modal Prediction\n $\\omega_n$ = %.3f rad/s', i, omega_n), 'Interpreter', 'latex', 'FontSize', 22);
+
+        lgnd = legend('Nonlinear', 'Analytical', 'Interpreter', 'latex', 'FontSize', 16, 'Location', 'northoutside');
+        lgnd.Units = 'normalized';
+        lgnd.Position(1) = 1 - lgnd.Position(3) - 0.1;  
+        lgnd.Position(2) = 1 - lgnd.Position(4) - 0.01;
+
+        ax1 = subplot(3,1,1); ax2 = subplot(3,1,2); ax3 = subplot(3,1,3); ...
+        set([ax1 ax2 ax3], 'XLim', xlims(i,:));
+
     end 
 
     %modal_animation(1, Umodes, omega, V_eq, box_params, my_rate_func, int_params);

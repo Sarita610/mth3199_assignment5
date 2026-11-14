@@ -1,0 +1,129 @@
+function modal_plots()
+    %define system parameters
+    LW = 10; LH = 1; LG = 3;
+    k = 20; l0 = 1.5*LG;
+
+    Pbl_box = [-LW;-LH]/2;
+    Pbr_box = [LW;-LH]/2;
+    Ptl_box = [-LW;LH]/2;
+    Ptr_box = [LW;LH]/2;
+
+    % P_box = [Pbl_box,Pbl_box, ...
+    %          Pbr_box,Pbr_box, ...
+    %          Ptl_box, Ptl_box, ...
+    %          Ptr_box, Ptr_box];
+
+    P_box = [Pbl_box,Pbl_box,Pbr_box,Pbr_box];
+
+    Pbl1_world = Pbl_box + [-LG;-LG];
+    Pbl2_world = Pbl_box + [LG;-LG];
+    Pbr1_world = Pbr_box + [0;-l0];
+    Pbr2_world = Pbr_box + [l0;0];
+    
+    % P_world = [Pbl1_world,Pbl2_world, ...
+    %            Pbr1_world,Pbr2_world, ...
+    %            Ptl1_world,Ptl2_world, ...
+    %            Ptr1_world, Ptr2_world];
+
+    P_world = [Pbl1_world,Pbl2_world,Pbr1_world,Pbr2_world];
+
+    boundary_pts = [Pbl_box,Pbr_box,Ptr_box,Ptl_box,Pbl_box];
+
+    box_params = struct();
+    box_params.m = 1;
+    box_params.I = (1/12)*(LH^2+LW^2);
+    box_params.g = 1;
+    box_params.k_list = [.5*k,.5*k,2*k,5*k];   
+    box_params.l0_list = l0*ones(1,4);                                 
+    box_params.P_world = P_world;
+    box_params.P_box = P_box;
+    box_params.boundary_pts = boundary_pts;
+
+    my_rate_func = @(t,V) box_rate_func(t, V, box_params);
+
+    %%Fehlburg
+    Fehlberg = struct();
+    Fehlberg.C = [0, 1/4, 3/8, 12/13, 1, 1/2];
+    Fehlberg.B = [16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55;...
+    25/216, 0, 1408/2565, 2197/4104, -1/5, 0];
+    Fehlberg.A = [0,0,0,0,0,0;...
+    1/4, 0,0,0,0,0;...
+    3/32, 9/32, 0,0,0,0;...
+    1932/2197, -7200/2197, 7296/2197, 0,0,0;...
+    439/216, -8, 3680/513, -845/4104, 0,0;...
+    -8/27, 2, -3544/2565, 1859/4104, -11/40, 0];
+     BT_struct = Fehlberg;
+
+    p=5;
+    error_desired = 1e-8;
+    h_ref = 0.01;
+    
+    %%
+    rate_eq = @(V) my_rate_func(0, V);
+    V_guess = zeros(6,1);
+
+    solver_params = struct();
+    solver_params.ftol = 1e-10;
+    %solver_params.dxmin = 1e-12;
+    solver_params.max_iter = 200;
+    solver_params.numerical_diff = 1; 
+
+    V_eq = multi_newton_solver(rate_eq, V_guess, solver_params);
+    disp(norm(rate_eq(V_eq)));
+
+    J_approx = approximate_jacobian(rate_eq, V_eq);
+    %my_linear_rate = @(t_in,V_in) J_approx*(V_in - V_eq);
+
+    dx0 = 1;
+    dy0 = 0;
+    dtheta0 = 0;
+    vx0 = 0;
+    vy0 = 0;
+    vtheta0 = 0;
+    dV = [dx0;dy0;dtheta0;vx0;vy0;vtheta0];
+
+    %mode
+    
+    Q = -J_approx(4:6,1:3);
+    Q = (Q+Q.')/2;
+    [Umodes, D] = eig(Q);
+    [lambda, idx] = sort(diag(D));
+    Umodes = Umodes(:, idx);
+    omega = sqrt(lambda);
+
+%
+    epsilon = 0.02;
+    n_periods = 4;
+    
+    
+    for i = 1:3
+        Umode   = Umodes(:,i);
+        omega_n = omega(i);
+        T = (2*pi)/omega_n;
+        V0 = V_eq + epsilon*[Umode;0;0;0];
+        [t, V] = explicit_RK_variable_step_integration(my_rate_func, [0, n_periods*T], V0, h_ref, BT_struct, p, error_desired);
+        x_modal = V_eq(1) + epsilon*Umode(1)*cos(omega_n*t);
+        y_modal = V_eq(2) + epsilon*Umode(2)*cos(omega_n*t);
+        theta_modal = V_eq(3) + epsilon*Umode(3)*cos(omega_n*t);
+
+        figure();
+        subplot(3,1,1); hold on; 
+        plot(t, V(:,1), 'b-', t, x_modal, 'r--', 'LineWidth', 1.5);
+        ylabel('Horizontal Position $x$ (m)', 'Interpreter', 'Llatex');
+        legend('Nonlinear', 'Analytical', 'Interpreter', 'latex');
+        
+        subplot(3,1,2);
+        plot(t, V(:,2), 'b-', t, y_modal, 'r--', 'LineWidth', 1.5);
+        ylabel('Vertical Position $y$ (m)', 'Interpreter', 'latex');
+        
+        subplot(3,1,3); 
+        plot(t, V(:,3), 'b-', t, theta_modal, 'r--', 'LineWidth', 1.5);
+        ylabel('Orientation $\theta$ (rad)', 'Interpreter', 'latex');
+        
+        xlabel('Time (s)', 'Interpreter', 'latex');
+        sgtitle(sprintf('Mode %d: Nonlinear Simulation vs. Modal Prediction\n $\\omega_n$ = %.3f rad/s', i, omega_n), 'Interpreter', 'latex');
+    end 
+
+    %modal_animation(1, Umodes, omega, V_eq, box_params, my_rate_func, int_params);
+end
+
