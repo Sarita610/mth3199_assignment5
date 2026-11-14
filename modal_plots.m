@@ -85,17 +85,16 @@ function modal_plots()
     %mode
     
     Q = -J_approx(4:6,1:3);
-    Q = (Q+Q.')/2;
     [Umodes, D] = eig(Q);
     [lambda, idx] = sort(diag(D));
     Umodes = Umodes(:, idx);
     omega = sqrt(lambda);
 
 %
-    epsilon = 0.02;
+    epsilon = 0.8;
     n_periods = 4;
     
-    xlims = [0 13; 0 2.5; 0 1.7]; 
+    xlims = [0 4.56; 0 2.5; 0 1.8]; 
 
     for i = 1:3
         Umode   = Umodes(:,i);
