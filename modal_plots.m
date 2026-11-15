@@ -91,7 +91,7 @@ function modal_plots()
     omega = sqrt(lambda);
 
 %
-    epsilon = 0.8;
+    epsilon = 0.4;
     n_periods = 4;
     
     xlims = [0 4.56; 0 2.5; 0 1.8]; 
